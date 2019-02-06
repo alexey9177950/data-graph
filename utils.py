@@ -59,15 +59,6 @@ def parse_twitter():
     return graph
 
 
-# коэффициент ассортативности графа
-def assort_k(graph):
-    x, y = [], []
-    for e1, e2 in graph.edges:
-        x.append(graph.degree(e1))
-        y.append(graph.degree(e2))
-    return pearsonr(x, y)[0]
-
-
 # строит график зависимости средней степени соседей от степени вершины
 def assort_plot(graph):
     deg_sum = dict()
@@ -177,6 +168,27 @@ def get_sets(partition):
     return ans
 
 
+# label propagation, но на с++ и с весами
+def w_label_prop(graph, max_iter = 100, min_delta = 1, change_w = None):
+    with open("in.txt", "w") as f:
+        print(graph.number_of_nodes(), graph.number_of_edges(), file=f)
+        for edge in graph.edges(data=True):
+            v_1, v_2, e_data = edge
+            try:
+                w = e_data['weight']
+            except:
+                w = 1
+            if change_w is not None:
+                w = change_w(w)
+            print(v_1, v_2, w, file=f)
+    system("./label_prop %d %d <in.txt >out.txt 2>err.txt" % (max_iter, min_delta))
+    with open("out.txt", "r") as f:
+        labels, deltas = f.readlines()
+        labels = list(map(int, labels.split()))
+        deltas = list(map(int, deltas.split()))
+    return labels, deltas
+
+
 # метрика качества разбиения
 def quality_of_partition(true_partition, partition):
     sets_1 = get_sets(true_partition)
@@ -197,8 +209,9 @@ def quality_of_partition(true_partition, partition):
     return ans / len(partition)
 
 
-def gen_data_graphs(n, dim, random_state=0):
-    system("./gen_data_graphs %d %d %d >out.txt" % (n, dim, random_state))
+def gen_data_graphs(n, dim, random_state=0, with_w=False):
+    print(int(with_w))
+    system("./gen_data_graphs %d %d %d %d >out.txt" % (n, dim, random_state, int(with_w)))
     lines = open('out.txt').readlines()
 
     data = []
@@ -208,8 +221,14 @@ def gen_data_graphs(n, dim, random_state=0):
     for gr_i in range(4):
         graph = nx.Graph()
         for i in range(n):
-            array = list(map(int, lines[n * (gr_i + 1) + i].split()))
-            for j in array:
-                graph.add_edge(i, j)
+            array = lines[n * (gr_i + 1) + i].split()
+            if with_w:
+                nodes = map(int, array[::2])
+                weights = map(float, array[1::2])
+                for j, w in zip(nodes, weights):
+                    graph.add_edge(i, j, weight=w)
+            else:
+                for j in map(int, array):
+                    graph.add_edge(i, j)
         graphs.append(graph)
     return data, graphs

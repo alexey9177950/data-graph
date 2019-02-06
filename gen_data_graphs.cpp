@@ -173,25 +173,30 @@ void write_data(const vector<vector<float>> &data) {
     }
 }
 
-void write_graph(const vector<vector<int>> &graph) {
+void write_graph(const vector<vector<int>> &graph, const vector<vector<float>> &data, bool with_w = false) {
     int v_num = graph.size();
     for (int i = 0; i < v_num; ++i) {
         for (int j : graph[i]) {
             std::cout << j << ' ';
+            if (with_w) {
+                std::cout << calc_dist(data[i], data[j]) << ' ';
+            }
         }
         std::cout << std::endl;
     }
 }
 
-#define BUILD_WRITE(F) graph = F(data); write_graph(graph); std::cerr << "done" << std::endl;
+#define BUILD_WRITE(F) graph = F(data); write_graph(graph, data, with_w); std::cerr << "done" << std::endl;
 
 int main(int argc, char **argv) {
-    if (argc != 4) {
+    if (argc != 4 && argc != 5) {
         return 1;
     }
     int n = atoi(argv[1]);
     int d = atoi(argv[2]);
     srand(atoi(argv[3]));
+    bool with_w = (argc == 5) && atoi(argv[4]);
+    
     vector<vector<float>> data = gen_2_clusters(n, d);
     write_data(data);
     std::cerr << "data written" << std::endl;

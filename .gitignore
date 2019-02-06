@@ -1,0 +1,13 @@
+# бинарники
+gen_data_graphs
+label_prop
+
+*.txt
+
+# папки с данными
+6dfb
+twitter_dataset
+
+# служебные файлы
+__pycache__
+.ipynb_checkpoints
