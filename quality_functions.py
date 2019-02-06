@@ -93,7 +93,7 @@ def eval_functions(partition, graph):
 
 from random import randint, choice
 
-def minimize(graph, f=global_density, max_iter=5 * 10**3, max_wait=20):
+def maximize(graph, f=global_density, max_iter=5 * 10**3, max_wait=20):
     n = graph.number_of_nodes()
     cur_wait = 0
     partition = [i for i in range(n)]
@@ -111,7 +111,7 @@ def minimize(graph, f=global_density, max_iter=5 * 10**3, max_wait=20):
         old_f = f(partition, graph)
         partition[node] = new_c
         new_f = f(partition, graph)
-        if new_f > old_f:
+        if new_f < old_f:
             cur_wait += 1
             partition[node] = old_c
         else:
