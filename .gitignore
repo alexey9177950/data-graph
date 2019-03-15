@@ -1,13 +1,10 @@
 # бинарники
-gen_data_graphs
-label_prop
-
-*.txt
+exe/*
 
 # папки с данными
-6dfb
-twitter_dataset
+datasets/*
 
 # служебные файлы
+tmp_files/*
 __pycache__
 .ipynb_checkpoints
