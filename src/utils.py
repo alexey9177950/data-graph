@@ -211,8 +211,8 @@ def quality_of_partition(true_partition, partition):
 
 def gen_data_graphs(n, dim, random_state=0, with_w=False):
     print(int(with_w))
-    system("../exe/gen_data_graphs %d %d %d %d >out.txt" % (n, dim, random_state, int(with_w)))
-    lines = open('out.txt').readlines()
+    system("../exe/gen_data_graphs %d %d %d %d >../tmp_files/out.txt" % (n, dim, random_state, int(with_w)))
+    lines = open('../tmp_files/out.txt').readlines()
 
     data = []
     for i in range(n):
