@@ -1,62 +1,9 @@
-import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 from random import random
 from scipy.stats import pearsonr
 from collections import Counter
 from os import system
-
-
-# строит граф связей по датасету "6 degrees of Francis Bacon"
-def parse_6dfb():
-    # nodes
-    graph = nx.Graph()
-    node_ids = pd.read_csv('../datasets/6dfb/SDFB_people.csv')['SDFB Person ID']
-    id_to_ind = dict(zip(node_ids, range(len(node_ids))))
-    for i in id_to_ind.values():
-        graph.add_node(i)
-    
-    # edges
-    fnames = ['SDFB_relationships_100120001_100140000.csv',
-              'SDFB_relationships_100100001_100120000.csv',
-              'SDFB_relationships_100000000_100020000.csv',
-              'SDFB_relationships_100080001_100100000.csv',
-              'SDFB_relationships_100040001_100060000.csv',
-              'SDFB_relationships_100020001_100040000.csv',
-              'SDFB_relationships_greater_than_100180000.csv',
-              'SDFB_relationships_100160001_100180000.csv',
-              'SDFB_relationships_100140001_100160000.csv',
-              'SDFB_relationships_100060001_100080000.csv']
-    
-    for fname in fnames:
-        edges = pd.read_csv('../datasets/6dfb/' + fname)[['Person 1 ID', 'Person 2 ID']]
-        for ind, edge in edges.iterrows():
-            v1, v2 = edge['Person 1 ID'], edge['Person 2 ID']
-            try:
-                v1, v2 = id_to_ind[v1], id_to_ind[v2]
-                graph.add_edge(v1, v2)
-            except:
-                continue
-    return graph
-
-
-# строит граф связей по датасету твиттера
-def parse_twitter():
-    # nodes
-    graph = nx.Graph()
-    node_ids = list(map(int, open('../datasets/twitter_dataset/user_list.txt', "r").readlines()))
-    for i in range(len(node_ids)):
-        graph.add_node(i)
-
-    # edges
-    for line in open('../datasets/twitter_dataset/graph_cb.txt', "r"):
-        v1, v2, unused = map(int, line.split())
-        try:
-            graph.add_edge(v1, v2)
-        except BaseException as exp:
-            print("Exception:", exp)
-            continue
-    return graph
 
 
 # строит график зависимости средней степени соседей от степени вершины
