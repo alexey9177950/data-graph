@@ -11,7 +11,7 @@ from os import system
 def parse_6dfb():
     # nodes
     graph = nx.Graph()
-    node_ids = pd.read_csv('6dfb/SDFB_people.csv')['SDFB Person ID']
+    node_ids = pd.read_csv('../datasets/6dfb/SDFB_people.csv')['SDFB Person ID']
     id_to_ind = dict(zip(node_ids, range(len(node_ids))))
     for i in id_to_ind.values():
         graph.add_node(i)
@@ -29,7 +29,7 @@ def parse_6dfb():
               'SDFB_relationships_100060001_100080000.csv']
     
     for fname in fnames:
-        edges = pd.read_csv('6dfb/' + fname)[['Person 1 ID', 'Person 2 ID']]
+        edges = pd.read_csv('../datasets/6dfb/' + fname)[['Person 1 ID', 'Person 2 ID']]
         for ind, edge in edges.iterrows():
             v1, v2 = edge['Person 1 ID'], edge['Person 2 ID']
             try:
@@ -44,12 +44,12 @@ def parse_6dfb():
 def parse_twitter():
     # nodes
     graph = nx.Graph()
-    node_ids = list(map(int, open('twitter_dataset/user_list.txt', "r").readlines()))
+    node_ids = list(map(int, open('../datasets/twitter_dataset/user_list.txt', "r").readlines()))
     for i in range(len(node_ids)):
         graph.add_node(i)
 
     # edges
-    for line in open('twitter_dataset/graph_cb.txt', "r"):
+    for line in open('../datasets/twitter_dataset/graph_cb.txt', "r"):
         v1, v2, unused = map(int, line.split())
         try:
             graph.add_edge(v1, v2)
@@ -170,7 +170,7 @@ def get_sets(partition):
 
 # label propagation, но на с++ и с весами
 def w_label_prop(graph, max_iter = 100, min_delta = 1, change_w = None):
-    with open("in.txt", "w") as f:
+    with open("../tmp_files/in.txt", "w") as f:
         print(graph.number_of_nodes(), graph.number_of_edges(), file=f)
         for edge in graph.edges(data=True):
             v_1, v_2, e_data = edge
@@ -181,8 +181,8 @@ def w_label_prop(graph, max_iter = 100, min_delta = 1, change_w = None):
             if change_w is not None:
                 w = change_w(w)
             print(v_1, v_2, w, file=f)
-    system("./label_prop %d %d <in.txt >out.txt 2>err.txt" % (max_iter, min_delta))
-    with open("out.txt", "r") as f:
+    system("../exe/label_prop %d %d <../tmp_files/in.txt >../tmp_files/out.txt 2>../tmp_files/err.txt" % (max_iter, min_delta))
+    with open("../tmp_files/out.txt", "r") as f:
         labels, deltas = f.readlines()
         labels = list(map(int, labels.split()))
         deltas = list(map(int, deltas.split()))
@@ -211,7 +211,7 @@ def quality_of_partition(true_partition, partition):
 
 def gen_data_graphs(n, dim, random_state=0, with_w=False):
     print(int(with_w))
-    system("./gen_data_graphs %d %d %d %d >out.txt" % (n, dim, random_state, int(with_w)))
+    system("../exe/gen_data_graphs %d %d %d %d >out.txt" % (n, dim, random_state, int(with_w)))
     lines = open('out.txt').readlines()
 
     data = []
