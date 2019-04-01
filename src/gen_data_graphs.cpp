@@ -1,210 +1,206 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <queue>
+
+#include <math.h>
+#include <time.h>
 
 using std::vector;
 
-vector<vector<float>> gen_2_clusters(int n, int d) {
-    vector<vector<float>> ans(n, vector<float>(d));
-    for (int i = 0; i < n; ++i) {
-        float norm = 0;
-        for (int j = 0; j < d; ++j) {
-            ans[i][j] = -0.5 + float(rand()) / float(RAND_MAX);
-            norm += ans[i][j] * ans[i][j];
-        }
-        if (norm > 1) {
-            --i;
-        } else {
-            if (i < n / 2) {
-                ans[i][0] += 1.;
-            } else {
-                ans[i][0] -= 1.;
-            }
-        }
-    }
-    return ans;
-}
+size_t LOG_PERIOD = 10'000;
 
-float calc_dist(const vector<float> &v1, const vector<float> &v2) {
-    double ans = 0.;
-    int d = v1.size();
-    for (int i = 0; i < d; ++i) {
-        float delta = v1[i] - v2[i];
+// матрица, хранящая данные в одном массиве
+class FastMatrix {
+    vector<float> data_;
+public:
+    const size_t n_rows_, n_cols_;
+    FastMatrix(size_t n_rows, size_t n_cols)
+        : data_(n_rows * n_cols),
+          n_rows_(n_rows),
+          n_cols_(n_cols) {
+    }
+
+    const float *operator[](size_t row_ind) const {
+        return &data_[row_ind * n_cols_];
+    }
+
+    float *operator[](size_t row_ind) {
+        return &data_[row_ind * n_cols_];
+    }
+};
+
+// расстояние между двумя векторами размера dim
+float calc_dist(const float *v_1, const float *v_2, size_t dim) {
+    float ans = 0.;
+    for (size_t i = 0; i < dim; ++i) {
+        float delta = v_1[i] - v_2[i];
         ans += delta * delta;
     }
     return ans;
 }
 
-vector<vector<int>> nn_graph(const vector<vector<float>> &data) {
-    int n = data.size();
-    vector<vector<int>> ans(n);
-    for (int i = 0; i < n; ++i) {
-        int best_j = (i + 1) % n;
-        float min_dist = 1e10;
-        for (int j = 0; j < n; ++j) {
+#define F_BEGIN \
+        time_t t_begin = time(NULL); \
+        size_t n = data.n_rows_; \
+        size_t d = data.n_cols_; \
+        vector<vector<int>> ans(n); \
+        for (size_t i = 0; i < d; ++i); 
+
+#define WRITE_LOG \
+        if ((i + 1) % LOG_PERIOD == 0) { \
+            std::cerr << i + 1 << ' ' << time(NULL) - t_begin << std::endl; \
+        }
+ 
+
+// граф k ближайших соседей
+vector<vector<int>> knn_graph(const FastMatrix &data, size_t k) {
+    F_BEGIN;
+    for (size_t i = 0; i < n; ++i) {
+        WRITE_LOG;
+        std::priority_queue<std::pair<float, size_t>> best_k;
+        for (size_t j = 0; j < n; ++j) {
             if (i == j) {
                 continue;
             }
-            float dist = calc_dist(data[i], data[j]);
-            if (dist < min_dist) {
-                best_j = j;
-                min_dist = dist;
+            float dist = calc_dist(data[i], data[j], d);
+            best_k.push({dist, j});
+            if (best_k.size() > k) {
+                best_k.pop();
             }
         }
-        if (ans[i].size() == 0 || ans[i][0] != best_j) {
-            ans[i].push_back(best_j);
-            ans[best_j].push_back(i);
+        while (best_k.size()) {
+            ans[i].push_back(best_k.top().second);
+            best_k.pop();
         }
     }
     return ans;
 }
 
-struct Edge {
-    int v1;
-    int v2;
-    float dist;
-};
-
-bool operator<(const Edge &e1, const Edge &e2) {
-    return e1.dist < e2.dist;
-}
-
-vector<vector<int>> mst_graph(const vector<vector<float>> &data) {
-    vector<vector<int>> ans(data.size());
-    vector<int> comp;
-    vector<Edge> edges;
-    int n = data.size();
-    for (int i = 0; i < n; ++i) {
-        comp.push_back(i);
-    }
-    for (int i = 0; i < n; ++i) {
-        for (int j = i + 1; j < n; ++j) {
-            edges.push_back(Edge{i, j, calc_dist(data[i], data[j])});
-        }
-    }
-    std::sort(edges.begin(), edges.end());    
-    for (const Edge &e : edges) {
-        if (comp[e.v1] != comp[e.v2]) {
-            ans[e.v1].push_back(e.v2);
-            ans[e.v2].push_back(e.v1);
-            int cmp_ind = comp[e.v2];
-            for (int i = 0; i < n; ++i) {
-                if (comp[i] == cmp_ind) {
-                    comp[i] = comp[e.v1];
-                }
-            }
-        }
-    }
-    return ans;
-}
-
-
-bool check_rng(size_t ind_1, size_t ind_2, const vector<vector<float>> &data) {
-    double rad = calc_dist(data[ind_1], data[ind_2]);
-    for (size_t i = 0; i < data.size(); ++i) {
+bool check_rng(size_t ind_1, size_t ind_2, const FastMatrix &data) {
+    size_t d = data.n_cols_;
+    float rad = calc_dist(data[ind_1], data[ind_2], d);
+    for (size_t i = 0; i < data.n_rows_; ++i) {
         if (i == ind_1 || i == ind_2) {
             continue;
         }
-        if (calc_dist(data[ind_1], data[i]) < rad && calc_dist(data[ind_2], data[i]) < rad) {
+        if (calc_dist(data[ind_1], data[i], d) < rad && calc_dist(data[ind_2], data[i], d) < rad) {
             return false;
         }
     }
     return true;
 }
 
-
-vector<vector<int>> rng_graph(const vector<vector<float>> &data) {
-    vector<vector<int>> ans(data.size());
-    int n = data.size();
-    for (int i = 0; i < n; ++i) {
-        for (int j = i + 1; j < n; ++j) {
+vector<vector<int>> rng_graph(const FastMatrix &data) {
+    F_BEGIN;
+    for (size_t i = 0; i < n; ++i) {
+        WRITE_LOG;
+        for (size_t j = i + 1; j < n; ++j) {
             if (check_rng(i, j, data)) {
                 ans[i].push_back(j);
-                ans[j].push_back(i);
             }
         }
     }
     return ans;
 }
 
-bool check_gabriel(size_t ind_1, size_t ind_2, const vector<vector<float>> &data) {
-    int d = data[0].size();
+bool check_gabriel(size_t ind_1, size_t ind_2, const FastMatrix &data) {
+    int d = data.n_cols_;
     vector<float> mid(d);
     for (int i = 0; i < d; ++i) {
         mid[i] = (data[ind_1][i] + data[ind_2][i]) / 2.;
     }
-    float rad = calc_dist(data[ind_1], data[ind_2]) / 4.;
-    for (size_t i = 0; i < data.size(); ++i) {
-        if (i != ind_1 && i != ind_2 && calc_dist(mid, data[i]) < rad) {
+    float rad = calc_dist(data[ind_1], data[ind_2], d) / 4.;
+    for (size_t i = 0; i < data.n_rows_; ++i) {
+        if (i == ind_1 || i == ind_2) {
+            continue;
+        }
+        if (calc_dist(&mid[0], data[i], d) < rad) {
             return false;
         }
     }
     return true;
 }
 
-vector<vector<int>> gabriel_graph(const vector<vector<float>> &data) {
-    vector<vector<int>> ans(data.size());
-    int n = data.size();
-    for (int i = 0; i < n; ++i) {
-        for (int j = i + 1; j < n; ++j) {
+vector<vector<int>> gabriel_graph(const FastMatrix &data) {
+    F_BEGIN;
+    for (size_t i = 0; i < n; ++i) {
+        WRITE_LOG;
+        for (size_t j = i + 1; j < n; ++j) {
             if (check_gabriel(i, j, data)) {
                 ans[i].push_back(j);
-                ans[j].push_back(i);
             }
         }
     }
     return ans;
 }
 
-
-vector<vector<int>> triangulation_graph(const vector<vector<float>> &data) {
-    // TODO
-    return vector<vector<int>>();
-}
-
-void write_data(const vector<vector<float>> &data) {
-    std::cout << std::fixed;
-    std::cout.precision(7);
-    for (const auto &vec : data) {
-        for (const float &x : vec) {
-            std::cout << x << ' ';
+vector<int> dist_histogram(const FastMatrix &data, size_t n_bins = 50'000, float l_border=-5, float r_border=5) {
+    std::vector<int> ans(n_bins, 0);
+    size_t n = data.n_rows_;
+    size_t d = data.n_cols_;
+    time_t t_begin = time(NULL);
+    for (size_t i = 0; i < n; ++i) {
+        WRITE_LOG;
+        for (size_t j = i + 1; j < n; ++j) {
+            float dist = log(1e-8 + calc_dist(data[i], data[j], d)) / 2.;
+            int64_t bin_ind = round(static_cast<float>(n_bins) * (dist - l_border) / (r_border - l_border));
+            if (bin_ind < 0) {
+                bin_ind = 0;
+            }
+            if (bin_ind >= static_cast<int64_t>(n_bins)) {
+                bin_ind = n_bins - 1;
+            }
+            ++ans[bin_ind];
         }
-        std::cout << std::endl;
     }
+    return ans;
 }
 
-void write_graph(const vector<vector<int>> &graph, const vector<vector<float>> &data, bool with_w = false) {
-    int v_num = graph.size();
-    for (int i = 0; i < v_num; ++i) {
-        for (int j : graph[i]) {
-            std::cout << j << ' ';
-            if (with_w) {
-                std::cout << calc_dist(data[i], data[j]) << ' ';
+float max_dist(const vector<int> &hist, int64_t n_edges, float l_b=-5, float r_b=5) {
+    int64_t cur_sum = 0;
+    size_t ind = 0;
+    size_t n_bins = hist.size();
+    while (cur_sum < n_edges && ind < n_bins) {
+        cur_sum += hist[ind];
+        ++ind;
+    }
+    float logdist = l_b + (r_b - l_b) * static_cast<float>(ind) / static_cast<float>(n_bins);
+    return exp(2 * logdist) - 1e-8;
+}
+
+vector<vector<int>> eps_graph(const FastMatrix &data, int n_edges) {
+    F_BEGIN;
+    double eps = max_dist(dist_histogram(data), n_edges);
+    eps *= eps;
+    for (size_t i = 0; i < n; ++i) {
+        WRITE_LOG;
+        for (size_t j = i + 1; j < n; ++j) {
+            if (calc_dist(data[i], data[j], d) < eps) {
+                ans[i].push_back(j);
             }
         }
-        std::cout << std::endl;
     }
+    return ans;
 }
 
-#define BUILD_WRITE(F) graph = F(data); write_graph(graph, data, with_w); std::cerr << "done" << std::endl;
-
-int main(int argc, char **argv) {
-    if (argc != 4 && argc != 5) {
-        return 1;
+vector<vector<int>> influence_graph(const FastMatrix &data) {
+    F_BEGIN;
+    vector<float> min_dist(n, 1e10);
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < i; ++j) {
+            float cur_dist = calc_dist(data[i], data[j], d);
+            min_dist[i] = std::min(min_dist[i], cur_dist);
+            min_dist[j] = std::min(min_dist[j], cur_dist);
+        }
     }
-    int n = atoi(argv[1]);
-    int d = atoi(argv[2]);
-    srand(atoi(argv[3]));
-    bool with_w = (argc == 5) && atoi(argv[4]);
-    
-    vector<vector<float>> data = gen_2_clusters(n, d);
-    write_data(data);
-    std::cerr << "data written" << std::endl;
-
-    vector<vector<int>> graph;
-    BUILD_WRITE(nn_graph);
-    BUILD_WRITE(mst_graph);
-    BUILD_WRITE(rng_graph);
-    BUILD_WRITE(gabriel_graph);
-    //BUILD_WRITE(tr_gr);
+    for (size_t i = 0; i < n; ++i) {
+        WRITE_LOG;
+        for (size_t j = i + 1; j < n; ++j) {
+            if (calc_dist(data[i], data[j], d) < min_dist[i] + min_dist[j]) {
+                ans[i].push_back(j);
+            }
+        }
+    }
+    return ans;
 }

@@ -156,17 +156,20 @@ def quality_of_partition(true_partition, partition):
     return ans / len(partition)
 
 
-def gen_data_graphs(n, dim, random_state=0, with_w=False):
+def gen_data_graphs(n, dim, random_state=0, with_w=False, n_nb=5):
     print(int(with_w))
-    system("../exe/gen_data_graphs %d %d %d %d >../tmp_files/out.txt" % (n, dim, random_state, int(with_w)))
+    system("../exe/gen_dg_nb %d %d %d %d %d >../tmp_files/out.txt 2>../tmp_files/err.txt"\
+            % (n, dim, random_state, int(with_w), n_nb))
     lines = open('../tmp_files/out.txt').readlines()
 
     data = []
     for i in range(n):
         data.append(list(map(float, lines[i].split())))
     graphs = []
-    for gr_i in range(4):
+    for gr_i in range(5):
         graph = nx.Graph()
+        for i in range(n):
+            graph.add_node(i)
         for i in range(n):
             array = lines[n * (gr_i + 1) + i].split()
             if with_w:
