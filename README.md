@@ -4,11 +4,11 @@
 
 ### /src/
 
-* label\_prop.cpp -- ... 
+* gen\_data\_graphs.cpp -- построение графов данных
 
-* gen\_data\_graphs.cpp -- ...
+* community\_detection.cpp -- поиск сообществ
 
-* gen\_data\_graphs\_vol2.cpp -- ...
+* main\_cd, main\_gen\_dg -- файлы для тестирования gen\_data\_graphs.cpp и community\_detection.cpp
 
 * utils.py -- коэфициенты ассортативности, построение графа данных и label propagation через подпрограмму на с++.
 
@@ -16,11 +16,13 @@
 
 ### /notebooks/
 
+* amazon\_encode\_title.ipynb -- часть data\_to\_matrix\_amazon.ipynb
+
 * community\_detection.ipynb -- тестирование написанного на С++ label propagation.
 
 * data\_graphs.ipynb -- строит графы данных, ищет в них сообщества и визуализирует полученный результат.
 
-* data\_to\_matrix\_amazon.ipynb, data\_to\_matrix\_6dfb.ipynb -- построение матриц признаков по метаданным.
+* data\_to\_matrix\_(6dfb | amazon | twitter).ipynb -- построение матриц признаков по метаданным.
 
 * datasets.ipynb -- коэффициенты ассортативности и графики ассортативности, размеры компонент
 

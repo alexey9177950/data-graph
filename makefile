@@ -3,9 +3,8 @@ default:
 
 compile_cpp:
 	rm exe/*
-	g++ -std=c++17 src/label_prop.cpp -o exe/label_prop
-	g++ -std=c++17 src/main_on_cluster.cpp -o exe/gen_dg
-	g++ -std=c++17 src/main_notebooks.cpp -o exe/gen_dg_nb
+	g++ -std=c++17 src/main_cd.cpp -o exe/comm_det
+	g++ -std=c++17 src/main_dg.cpp -o exe/gen_dg
 
 run_6dfb:
 	exe/gen_dg 15801 12 1 7 <datasets/6dfb_mat >datasets/fb_dg_eps
