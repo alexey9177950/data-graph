@@ -27,55 +27,6 @@ def assort_plot(graph):
     plt.plot(degs, nb_degs)
 
 
-# вспомогательная функция для label propagation
-def find_components(graph, labels):
-    n_nodes = graph.number_of_nodes()
-    answer = [-1 for i in range(n_nodes)]
-    n_components = 0
-    for i in range(n_nodes):
-        if answer[i] != -1:
-            continue
-        stack = [i]
-        answer[i] = n_components
-        while len(stack) > 0:
-            v_1 = stack.pop()
-            for v_2 in graph.neighbors(v_1):
-                if answer[v_2] == -1 and labels[v_1] == labels[v_2]:
-                    answer[v_2] = n_components
-                    stack.append(v_2)
-        n_components += 1
-
-    return answer
-
-
-# алгоритм label propagation
-def label_propagation(graph, max_iter=100, min_delta=1, output=False):
-    nodes_n = graph.number_of_nodes()
-    labels = list(range(nodes_n))
-    deltas = []
-    for iter_n in range(max_iter):
-        new_labels = labels.copy()
-        delta = 0
-        for v in range(nodes_n):
-            cnt = Counter(labels[u] for u in graph.neighbors(v))
-            try:
-                new_labels[v] = cnt.most_common(1)[0][0]
-            except:
-                continue
-            if new_labels[v] != labels[v]:
-                delta += 1
-        labels = new_labels
-        deltas.append(delta)
-        if delta < min_delta:
-            break
-        if iter_n % 5 == 4 and output:
-            print("iteration number", iter_n + 1, "done")
-    if output:
-        print(iter_n + 1, 'iterations')
-    labels = find_components(graph, labels)
-    return labels, deltas
-
-
 # генерация графа с сообществами через SBM
 def gen_sbm_graph(sizes, prob_community, prob_other):
     block_ids = []
@@ -116,7 +67,8 @@ def get_sets(partition):
 
 
 # label propagation, но на с++ и с весами
-def w_label_prop(graph, max_iter = 100, min_delta = 1, change_w = None):
+def w_label_prop(graph, max_iter = 100, min_delta = 1, change_w = None, async_f = 0):
+    async_f = int(async_f)
     with open("../tmp_files/in.txt", "w") as f:
         print(graph.number_of_nodes(), graph.number_of_edges(), file=f)
         for edge in graph.edges(data=True):
@@ -128,7 +80,8 @@ def w_label_prop(graph, max_iter = 100, min_delta = 1, change_w = None):
             if change_w is not None:
                 w = change_w(w)
             print(v_1, v_2, w, file=f)
-    system("../exe/label_prop %d %d <../tmp_files/in.txt >../tmp_files/out.txt 2>../tmp_files/err.txt" % (max_iter, min_delta))
+    system("../exe/comm_det 1 %d %d %d <../tmp_files/in.txt >../tmp_files/out.txt 2>../tmp_files/err.txt"
+            % (max_iter, min_delta, async_f))
     with open("../tmp_files/out.txt", "r") as f:
         labels, deltas = f.readlines()
         labels = list(map(int, labels.split()))

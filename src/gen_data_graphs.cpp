@@ -135,43 +135,30 @@ vector<vector<int>> gabriel_graph(const FastMatrix &data) {
     return ans;
 }
 
-vector<int> dist_histogram(const FastMatrix &data, size_t n_bins = 50'000, float l_border=-5, float r_border=5) {
-    std::vector<int> ans(n_bins, 0);
-    size_t n = data.n_rows_;
-    size_t d = data.n_cols_;
-    time_t t_begin = time(NULL);
-    for (size_t i = 0; i < n; ++i) {
-        WRITE_LOG;
-        for (size_t j = i + 1; j < n; ++j) {
-            float dist = log(1e-8 + calc_dist(data[i], data[j], d)) / 2.;
-            int64_t bin_ind = round(static_cast<float>(n_bins) * (dist - l_border) / (r_border - l_border));
-            if (bin_ind < 0) {
-                bin_ind = 0;
-            }
-            if (bin_ind >= static_cast<int64_t>(n_bins)) {
-                bin_ind = n_bins - 1;
-            }
-            ++ans[bin_ind];
-        }
-    }
-    return ans;
-}
+float max_dist(const FastMatrix &data, int64_t n_edges, int n_samples_below=250) {
+    double n_nodes = data.n_rows_;
+    double n_pairs = (n_nodes * (n_nodes - 1)) / 2;
+    std::cerr << "n_edges = " << n_edges << std::endl;
+    int n_samples = round(n_pairs * static_cast<double>(n_samples_below) / static_cast<double>(n_edges));
+    std::cerr << "n_samples = " << n_samples << std::endl;
 
-float max_dist(const vector<int> &hist, int64_t n_edges, float l_b=-5, float r_b=5) {
-    int64_t cur_sum = 0;
-    size_t ind = 0;
-    size_t n_bins = hist.size();
-    while (cur_sum < n_edges && ind < n_bins) {
-        cur_sum += hist[ind];
-        ++ind;
+    vector<float> samples(n_samples);
+    for (int i = 0; i < n_samples; ++i) {
+        int v_1, v_2;
+        do {
+            v_1 = rand() % data.n_rows_;
+            v_2 = rand() % data.n_rows_;
+        } while (v_1 == v_2);
+        samples[i] = calc_dist(data[v_1], data[v_2], data.n_cols_);
     }
-    float logdist = l_b + (r_b - l_b) * static_cast<float>(ind) / static_cast<float>(n_bins);
-    return exp(2 * logdist) - 1e-8;
+    std::sort(samples.begin(), samples.end());
+    return sqrt(samples[n_samples_below + 1]);
 }
 
 vector<vector<int>> eps_graph(const FastMatrix &data, int n_edges) {
     F_BEGIN;
-    double eps = max_dist(dist_histogram(data), n_edges);
+    double eps = max_dist(data, n_edges);
+    std::cerr << "eps = " << eps << std::endl;
     eps *= eps;
     for (size_t i = 0; i < n; ++i) {
         WRITE_LOG;

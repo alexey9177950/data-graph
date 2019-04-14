@@ -83,13 +83,18 @@ def eval_functions(partition, graph):
     functions = [global_density, local_density, distance_based, node_membership]
     print("UNSHUFFLED")
     for f in functions:
-        print(f.__name__, ":", f(partition, graph))
+        try:
+            print(f.__name__, ":", f(partition, graph))
+        except:
+            print(f.__name__, ":", "nan")
     print("SHUFFLED")
     s_partition = partition.copy()
     shuffle(s_partition)
     for f in functions:
-        print(f.__name__, ":", f(s_partition, graph))
-
+        try:
+            print(f.__name__, ":", f(s_partition, graph))
+        except:
+            print(f.__name__, ":", "nan")
 
 from random import randint, choice
 

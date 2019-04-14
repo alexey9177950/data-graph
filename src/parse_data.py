@@ -25,7 +25,7 @@ def parse_6dfb():
               'SDFB_relationships_100140001_100160000.csv',
               'SDFB_relationships_100060001_100080000.csv']
     
-    for fname in fnames:
+    for fname in tqdm(fnames):
         edges = pd.read_csv('../datasets/6dfb/' + fname)[['Person 1 ID', 'Person 2 ID']]
         for ind, edge in edges.iterrows():
             v1, v2 = edge['Person 1 ID'], edge['Person 2 ID']
