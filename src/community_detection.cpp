@@ -74,6 +74,7 @@ LabelPropRes label_prop(const Graph &graph, int max_iter, int min_delta, int asy
                 }
             }
         } else {
+            std::cerr << "here I am" << std::endl;
             for (size_t i = 0; i < graph.size(); ++i) {
                 int new_label = assign_label(graph, labels, i);
                 if (new_label != labels[i]) {

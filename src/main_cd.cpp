@@ -37,7 +37,12 @@ int main(int argc, char **argv) {
         std::cerr << "running label propagation" << std::endl;
         int max_iter = atoi(argv[2]);
         int min_delta = atoi(argv[3]);
-        int async = atoi(argv[4]);
+        int async;
+        if (argc >= 5) {
+            async = atoi(argv[4]);
+        } else {
+            async = false;
+        }
         output_lp(label_prop(input(), max_iter, min_delta, async));
     } else {
         std::cerr << "running CNM" << std::endl;

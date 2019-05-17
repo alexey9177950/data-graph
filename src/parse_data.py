@@ -85,10 +85,14 @@ def parse_amazon(path='../datasets/amazon-meta.txt'):
         ' '.join([cp for cp in metadata['Copurchased'].split() \
             if cp in amazonProducts.keys()])
     copurchaseGraph = networkx.Graph()
+    asin_to_ind = dict()
     for asin,metadata in tqdm(amazonProducts.items()):
-        copurchaseGraph.add_node(asin)
+        if asin not in asin_to_ind:
+            asin_to_ind[asin] = len(asin_to_ind)
+        copurchaseGraph.add_node(asin_to_ind[asin])
         for a in metadata['Copurchased'].split():
-            copurchaseGraph.add_node(a.strip())
-            similarity = 0
-            copurchaseGraph.add_edge(asin, a.strip())
+            if a.strip() not in asin_to_ind:
+                asin_to_ind[a.strip()] = len(asin_to_ind)
+            copurchaseGraph.add_node(asin_to_ind[a.strip()])
+            copurchaseGraph.add_edge(asin_to_ind[asin], asin_to_ind[a.strip()])
     return copurchaseGraph
