@@ -6,26 +6,28 @@
 
 * gen\_data\_graphs.cpp -- построение графов данных
 
-* community\_detection.cpp -- поиск сообществ
+* community\_detection.cpp -- поиск сообществ в графах
 
-* main\_cd, main\_gen\_dg -- файлы для тестирования gen\_data\_graphs.cpp и community\_detection.cpp
+* main\_cd.cpp, main\_gen\_dg.cpp -- ввод/вывод для gen\_data\_graphs.cpp и community\_detection.cpp соответственно
 
-* utils.py -- коэфициенты ассортативности, построение графа данных и label propagation через подпрограмму на с++.
+* parse\_data.py -- парсинг датасетов
 
-* quality\_functions.py -- функции качества
+* utils.py -- "обёртка" на языке Python3.
+
+* quality\_functions.py -- функции качества для валидации результатов
 
 ### /notebooks/
 
-* amazon\_encode\_title.ipynb -- часть data\_to\_matrix\_amazon.ipynb
+* cd\_(6dfb | amazon | twitter).ipynb -- поиск сообществ в каждом из датасетов
 
-* community\_detection.ipynb -- тестирование написанного на С++ label propagation.
+* community\_detection.ipynb -- тестирование label propagation
 
-* data\_graphs.ipynb -- строит графы данных, ищет в них сообщества и визуализирует полученный результат.
+* data\_graphs.ipynb -- тестирование графов данных
 
-* data\_to\_matrix\_(6dfb | amazon | twitter).ipynb -- построение матриц признаков по метаданным.
+* data\_to\_matrix\_(6dfb | amazon | twitter).ipynb -- построение матриц признаков по метаданным
 
-* datasets.ipynb -- коэффициенты ассортативности и графики ассортативности, размеры компонент
+* amazon\_encode\_title.ipynb -- обработка заголовка для data\_to\_matrix\_amazon.ipynb
 
-* modularity.ipynb -- алгоритм CNM для твиттера и 6dfb. (для амазона слишком долго работает).
+* datasets.ipynb -- коэффициенты ассортативности и графики ассортативности в датасетах, размеры компонент связности
 
 * qf\_test.ipynb -- тестирование функций качества.

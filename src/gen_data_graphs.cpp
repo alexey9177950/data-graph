@@ -155,10 +155,8 @@ float max_dist(const FastMatrix &data, int64_t n_edges, int n_samples_below=250)
     return sqrt(samples[n_samples_below + 1]);
 }
 
-vector<vector<int>> eps_graph(const FastMatrix &data, int n_edges) {
+vector<vector<int>> eps_graph(const FastMatrix &data, float eps) {
     F_BEGIN;
-    double eps = max_dist(data, n_edges);
-    std::cerr << "eps = " << eps << std::endl;
     eps *= eps;
     for (size_t i = 0; i < n; ++i) {
         WRITE_LOG;
@@ -169,6 +167,10 @@ vector<vector<int>> eps_graph(const FastMatrix &data, int n_edges) {
         }
     }
     return ans;
+}
+
+vector<vector<int>> eps_graph_n_edges(const FastMatrix &data, int n_edges) {
+    return eps_graph(data, max_dist(data, n_edges));
 }
 
 vector<vector<int>> influence_graph(const FastMatrix &data) {

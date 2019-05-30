@@ -66,7 +66,6 @@ def get_sets(partition):
     return ans
 
 
-# label propagation, но на с++ и с весами
 def w_label_prop(graph, max_iter = 100, min_delta = 1, change_w = None, async_f = 0):
     async_f = int(async_f)
     with open("../tmp_files/in.txt", "w") as f:
@@ -87,6 +86,23 @@ def w_label_prop(graph, max_iter = 100, min_delta = 1, change_w = None, async_f 
         labels = list(map(int, labels.split()))
         deltas = list(map(int, deltas.split()))
     return labels, deltas
+
+def CNM_alg(graph, max_iter = 1000, change_w = None):
+    async_f = int(async_f)
+    with open("../tmp_files/in.txt", "w") as f:
+        print(graph.number_of_nodes(), graph.number_of_edges(), file=f)
+        for edge in graph.edges(data=True):
+            v_1, v_2, e_data = edge
+            try:
+                w = e_data['weight']
+            except:
+                w = 1
+            if change_w is not None:
+                w = change_w(w)
+            print(v_1, v_2, w, file=f)
+    system("../exe/comm_det 2 %d <../tmp_files/in.txt >../tmp_files/out.txt 2>../tmp_files/err.txt"
+            % max_iter)
+    return open("../tmp_files/out.txt", "r").readlines()[0]
 
 
 # метрика качества разбиения
