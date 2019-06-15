@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     vector<int> hist;
     switch (task_type) {
     case 1:
-        graph = eps_graph(data, data.n_rows_ * k);
+        graph = eps_graph_n_edges(data, data.n_rows_ * k);
         break;
     case 2:
         graph = knn_graph(data, k);

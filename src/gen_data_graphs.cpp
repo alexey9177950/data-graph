@@ -152,7 +152,9 @@ float max_dist(const FastMatrix &data, int64_t n_edges, int n_samples_below=250)
         samples[i] = calc_dist(data[v_1], data[v_2], data.n_cols_);
     }
     std::sort(samples.begin(), samples.end());
-    return sqrt(samples[n_samples_below + 1]);
+    double ans = sqrt(samples[n_samples_below + 1]);
+    std::cerr << "eps = " << ans << std::endl;
+    return ans;
 }
 
 vector<vector<int>> eps_graph(const FastMatrix &data, float eps) {
